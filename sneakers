@@ -11,8 +11,13 @@
 
 function random_string() {
 	local length=$1
+	if [ -n "$2" ]; then
+		local charset="$2"
+	else
+		local charset="abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
+	fi
 	
-	echo -n "$(cat /dev/urandom | env LC_CTYPE=C tr -dc 'a-zA-Z0-9' | fold -w $1 | head -n 1)"
+	echo -n "$(cat /dev/urandom | env LC_CTYPE=C tr -dc "$charset" | fold -w $1 | head -n 1)"
 }
 
 function anim_until_char() {
@@ -24,10 +29,12 @@ function anim_until_char() {
 	else
 		echo -n "$start_char"
 		
+		local charset="abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
 		local rand_char="$(random_string 1)"
 		while [ "$end_char" != "$rand_char" ]; do
 			echo -n $'\b'"$rand_char";
-			rand_char="$(random_string 1)"
+			charset="$(tr -d "$rand_char" <<< "$charset")"
+			rand_char="$(random_string 1 "$charset")"
 		done
 		echo -n $'\b'"$end_char"
 	fi
