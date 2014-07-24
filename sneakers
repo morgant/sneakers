@@ -1,0 +1,49 @@
+#!/bin/bash
+
+# 
+# sneakers - animate text in the style of the title credits from the movie Sneakers
+# 
+# Random string generator from https://gist.github.com/earthgecko/3089509
+# 
+# v0.1   2014-07-24 - Morgan Aldridge <morgant@makkintosshu.com>
+#                     Initial version.
+# 
+
+function random_string() {
+	local length=$1
+	
+	echo -n "$(cat /dev/urandom | env LC_CTYPE=C tr -dc 'a-zA-Z0-9' | fold -w $1 | head -n 1)"
+}
+
+function anim_until_char() {
+	local start_char="$1"
+	local end_char="$2"
+	
+	if [[ "$end_char" =~ [^a-zA-Z0-9] ]]; then
+		echo -n "$end_char"
+	else
+		echo -n "$start_char"
+		
+		local rand_char="$(random_string 1)"
+		while [ "$end_char" != "$rand_char" ]; do
+			echo -n $'\b'"$rand_char";
+			rand_char="$(random_string 1)"
+		done
+		echo -n $'\b'"$end_char"
+	fi
+}
+
+function main() {
+	local final_str="$1"
+	local str_len=${#final_str}
+	local rand_str="$(random_string $str_len)"
+	
+	echo -n "$rand_str"$'\033'"[${str_len}D"
+	for (( i=0; i<str_len; i++ )); do
+		anim_until_char "${rand_str:$i:1}" "${final_str:$i:1}"
+	done
+	
+	echo
+}
+
+main "$1"
